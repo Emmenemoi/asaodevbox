@@ -1,0 +1,157 @@
+#cloud-config
+bootcmd:
+    - mkdir /asao-user-data
+    - mount /dev/disk/by-label/asao-user-data /asao-user-data || true
+autoinstall:
+    version: 1
+    locale: en_US
+    keyboard:
+        layout: fr
+    repo_upgrade: none
+    refresh-installer:
+        update: no
+    apt:
+        primary:
+            - arches: [default]
+              uri: http://archive.ubuntu.com/ubuntu
+    storage:
+        grub:
+            reorder_uefi: false
+        swap:
+            size: 0
+        config:
+            - id: sda
+              type: disk
+              ptable: gpt
+              name: main_disk
+              preserve: false
+              wipe: superblock
+            - id: sda1
+              type: partition
+              size: 512M
+              device: sda
+              flag: boot
+              grub_device: true
+              preserve: false
+              number: 1 
+            - id: sda2
+              type: partition
+              size: 512M
+              device: sda
+              grub_device: false
+              flag: linux
+              preserve: false
+              number: 2
+            - id: sda3
+              type: partition
+              size: -1
+              device: sda
+              grub_device: false
+              flag: linux
+              preserve: false
+              number: 3
+            - id: sda3_crypt
+              type: dm_crypt
+              dm_name: sda3_crypt
+              volume: sda3
+              key: asao
+              preserve: false
+            - id: volgroup1
+              name: ubuntuvg
+              type: lvm_volgroup
+              preserve: false
+              devices: [ sda3_crypt ]
+            - id: lvmpart1
+              name: ubuntu_root
+              type: lvm_partition
+              volgroup: volgroup1
+              size: 100%
+              preserve: false
+            - id: sda1_efi
+              type: format
+              fstype: fat32
+              volume: sda1
+              preserve: false
+            - id: sda2_boot
+              type: format
+              fstype: ext2
+              volume: sda2
+              preserve: false
+            - id: root_fs
+              name: storage
+              type: format
+              fstype: ext4
+              volume: lvmpart1
+              preserve: false
+            - id: sda1_mount
+              type: mount
+              path: /boot/efi
+              device: sda1_efi
+            - id: sda2_mount
+              type: mount
+              path: /boot
+              device: sda2_boot
+            - id: lv1_mount
+              type: mount
+              path: /
+              device: root_fs
+    identity:
+        hostname: asaoDevBox
+        username: asao
+        password: $1$ihVyWOJb$B6DQiuVxIFuJ.0PBED337.
+    ssh:
+        install-server: yes
+        allow-pw: no
+    packages:
+#        - ubuntu-desktop-minimal
+        - git
+    user-data:
+        disable_root: false
+    power_state:
+        delay: '+30'
+        mode: reboot
+        message: 'Bye Bye'
+        timeout: 10
+        condition: True
+    late-commands:
+        - cp /tmp/etc/init.d/asaobox_init /target/etc/init.d/asaobox_init
+        - cp -rn /tmp/asao-user-data/* /asao-user-data/
+        - mkdir -p /target/home/asao/.ssh/
+        - chmod 0600 /target/home/asao/.ssh
+        - cp /asao-user-data/id_rsa /target/home/asao/.ssh/id_rsa
+        - cp /asao-user-data/id_rsa.pub /target/home/asao/.ssh/id_rsa.pub
+        - chown -R 1000:1000 /target/home/asao/.ssh
+        - printf "asao" | tee /tmp/current_passphrase
+        - cryptsetup -v --key-file /tmp/current_passphrase luksAddKey /dev/sda3 /asao-user-data/keyfile
+        - echo "sda3_crypt UUID=$(blkid -s UUID -o value /dev/sda3) /dev/disk/by-label/asao-user-data:keyfile luks,keyscript=/lib/cryptsetup/scripts/passdev" > /target/etc/crypttab
+        - curtin in-target --target=/target -- update-initramfs -u
+#        - curtin in-target --target=/target -- bash /etc/init.d/asaobox_init
+#        - curtin in-target --target=/target -- 
+write_files:
+# sudo bash -c 'cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${1:-128} | head -n 1 > keyfile'
+- path: /tmp/asao-user-data/keyfile
+  permissions: '0400'
+  content: 'SAKql27xqKJyXK8JFP3YblG2AiK3pOlGY8QY5AbIX206nMOAlTYinDSKClhXmH8zMrO0RwncmEse0uNd6odYo09SPQd0rBEsBTCKgnPUZuj7TiIKkvM9XbTWJyW5Slg4'
+  owner: root:root
+#- path: /tmp/asao-user-data/ssh_config
+#  permissions: '0400'
+#  owner: 1000:1000
+#  content: |
+#      Host bitbucket.org
+#            IdentityFile    ~/.ssh/id_rsa
+- path: /tmp/etc/init.d/asaobox_init
+  permissions: '0755'
+  content: |
+    #!/bin/bash
+    FLAG="/var/log/asaobox_init.log"
+    if [ ! -f $FLAG ]; then
+        #Put here your initialization sentences
+        echo "This is the first boot"
+        
+        snap install microk8s --classic --channel=1.14/stable
+        microk8s enable dashboard dns registry istio
+                
+        touch $FLAG
+    else
+        echo "Do nothing, or remove $FLAG file"
+    fi
