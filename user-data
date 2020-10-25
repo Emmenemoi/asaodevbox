@@ -148,6 +148,16 @@ write_files:
         #Put here your initialization sentences
         echo "This is the first boot"
         
+        # if AnydeskPassword is set, runn:
+        #wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | apt-key add -
+        #echo "deb http://deb.anydesk.com/ all main" > /etc/apt/sources.list.d/anydesk-stable.list
+        #apt update
+        #apt install -qy anydesk
+        #echo '<AnydeskPassword>' | anydesk --set-password
+        #echo '<AnydeskLicence>' | anydesk --register-license
+        #systemctl restart anydesk
+        #systemctl enable anydesk
+        
         snap install microk8s --classic --channel=1.14/stable
         microk8s enable dashboard dns registry istio
                 
