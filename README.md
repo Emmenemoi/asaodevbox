@@ -14,23 +14,27 @@ Automatic kubernetes developement server provisioning from OSX or Linux
 If the AsaoDevBox needs to "travels" safely, just unplug the "Installer Device" from the box.
 
 # Files description
-user-data: default cloud-init file for unattended install to be included in the iso partition
 
-prepare-key.sh:
-  Script to prerpare the device for auto-installation (on USB key or SD card)
+- user-data: default cloud-init file for unattended install to be included in the iso partition
+
+- prepare-key.sh:
+  - Script to prerpare the device for auto-installation (on USB key or SD card)
     => format and prepare the device with 2 partitions:
       - Ubuntu 20 iso: install prepared for 0 interactivity and default user-data
       - User partition: copy custom user files: extra-user-data, developer rsa-keys, post-install script file (locally or DL)
 
 # user-data:
+
 Default cloud-init file that will merge the data with "extra-user-data" file preset on the Installer Device part 2 if any -> possible to assign fixed IP or default wifi SSID/PWD
 
 # extra-user-data
-AnydeskPassword : will install anydesk with the specified password if present
-AnydeskLicence : will install anydesk with the specified licence if present
-Microk8sChannel: set MicroK8s channel parameter for installation
+
+- AnydeskPassword : will install anydesk with the specified password if present.
+- AnydeskLicence : will install anydesk with the specified licence if present.
+- Microk8sChannel: set MicroK8s channel parameter for installation.
 
 # User partition files:
+
 - extra-user-data (optional): user-data cloud-init to be merged with 
 - rsa_id / rsa_id.pub: developer RSA keys used to access the distant private git repos. Will also be used to access the AsaoDevBox
 - keyfile (optional): keyfile used to encrypt root partition
