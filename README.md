@@ -40,3 +40,13 @@ Default cloud-init file that will merge the data with "extra-user-data" file pre
 - keyfile (optional): keyfile used to encrypt root partition
 - post-install.sh (optional): post install script for kube deployement on first boot
 - reset (optional): file forcing auto provisionning if present
+
+## testing:
+Create iso seed for unattended boot with :
+genisoimage -output seed.iso -volid cidata -joliet -rock user-data meta-data
+
+Using virtualbox:
+Boot a VM in UEFI mode with "Ubuntu Server 20.20 install" iso + generateed seed.iso
+
+Validate "unattended install"
+
