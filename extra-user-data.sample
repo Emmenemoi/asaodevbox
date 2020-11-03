@@ -1,0 +1,26 @@
+network:
+    network:
+        version: 2
+        ethernets:
+            enp1s0:
+              addresses:
+                - 192.168.122.200/24
+              gateway4: 192.168.122.1
+              nameservers:
+#                  search: [mydomain, otherdomain]
+                  addresses: [8.8.8.8, 1.1.1.1]
+#       wifis:
+#         wlp2s0b1:
+#           dhcp4: no
+#           dhcp6: no
+#           addresses: [192.168.0.21/24]
+#           gateway4: 192.168.0.1
+#           nameservers:
+#             addresses: [192.168.0.1, 8.8.8.8]
+#           access-points:
+#             "network_ssid_name":
+#               password: "S3kr1t"
+#snaps:
+#  - name: microk8s
+#    channel: stable
+#    classic: true
