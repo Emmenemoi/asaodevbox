@@ -30,7 +30,7 @@ Default cloud-init file that will merge the data with "extra-user-data" file pre
 
 # extra-user-data
 
-- network: put your static network configuration (sample in extra-user-data.sample)
+- network: put your static network configuration (sample in extra-user-data.sample) (Don't work for now, you should put it in user-data file)
 
 # User partition files:
 
@@ -42,12 +42,24 @@ Default cloud-init file that will merge the data with "extra-user-data" file pre
 - anydesk.conf (optional): contains Anydesk license and password (sample in anydesk.conf.sample)
 - reset (optional): file forcing auto provisionning if present
 
-## testing:
-Create iso seed for unattended boot with :
-genisoimage -output seed.iso -volid cidata -joliet -rock user-data meta-data
+# testing:
 
-Using virtualbox:
-Boot a VM in UEFI mode with "Ubuntu Server 20.20 install" iso + generateed seed.iso
+Run prepare-key.sh with docker to generate your install disk image which will named AsaoDevBox.img:
+
+```bash
+docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -ti ubuntu:20.04 ./prepare-key.sh
+```
+
+You can also add a block disk in parameter to write it directly (all data on the block disk will be erased):
+
+```bash
+docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -ti ubuntu:20.04 ./prepare-key.sh /dev/sdl
+```
+
+After some minutes, you can extract you install device and get your kube-config file, the install device is not mounted in normal run.
 
 Validate "unattended install"
 
+To reinstall your box, simply put a file named reset in asao-user-data partition and reboot.
+
+If your system can't boot, plug a keyboard and press the required key at boot time for boot menu and select your boot device ([F8] on Zotac).
