@@ -6,7 +6,7 @@ if [ $(id -u) -ne 0 ]; then
 fi
 
 ln -s /usr/share/zoneinfo/Etc/UTC /etc/localtime
-apt update && apt install -y wget parted dosfstools udev cmake libfdisk1 libfdisk-dev libfuse2 libfuse-dev build-essential git
+apt update && apt install -y wget parted dosfstools udev cmake libfdisk1 libfdisk-dev libfuse2 libfuse-dev build-essential git fuse
 git clone https://github.com/braincorp/partfs.git
 cd partfs/
 make
