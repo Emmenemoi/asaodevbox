@@ -69,6 +69,12 @@ After some minutes, you can extract you install device and get your kube-config 
 
 Validate "unattended install"
 
+To connect on the box, simply run :
+
+```bash
+ssh asao@asaodevbox
+```
+
 To reinstall your box, simply put a file named reset in asao-user-data partition and reboot.
 
 If your system can't boot, plug a keyboard and press the required key at boot time for boot menu and select your boot device ([F8] on Zotac).
