@@ -12,26 +12,27 @@ autoinstall:
         network:
             version: 2
             ethernets:
-                enp1s0:
-                  dhcp4: yes
-                enp2s0:
-                  addresses:
-                    - 192.168.122.200/24
-#                  gateway4: 192.168.122.1
-#                  nameservers:
-#                      search: [mydomain, otherdomain]
-#                      addresses: [8.8.8.8, 1.1.1.1]
-#           wifis:
-#             wlo1:
-#               dhcp4: no
-#               dhcp6: no
-#               addresses: [192.168.0.21/24]
-#               gateway4: 192.168.0.1
-#               nameservers:
-#                 addresses: [192.168.0.1, 8.8.8.8]
-#               access-points:
-#                 "network_ssid_name":
-#                   password: "S3kr1t"
+              enp1s0:
+                dhcp4: yes
+#              enp2s0:
+#                addresses:
+#                  - 192.168.122.200/24
+#                gateway4: 192.168.122.1
+#                nameservers:
+#                    search: [mydomain, otherdomain]
+#                    addresses: [8.8.8.8, 1.1.1.1]
+#            wifis:
+#              wlo1:
+#                dhcp4: yes
+#                dhcp4: no
+#                dhcp6: no
+#                addresses: [192.168.0.21/24]
+#                gateway4: 192.168.0.1
+#                nameservers:
+#                  addresses: [192.168.0.1, 8.8.8.8]
+#                access-points:
+#                  "network_ssid_name":
+#                    password: "S3kr1t"
     version: 1
     locale: en_US
     keyboard:
@@ -134,6 +135,7 @@ autoinstall:
     packages:
 #        - ubuntu-desktop-minimal
         - git
+        - wpasupplicant
     user-data:
         disable_root: false
     power_state:
