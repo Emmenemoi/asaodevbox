@@ -2,9 +2,7 @@ FROM ubuntu:20.04 as build
 
 ADD prepare-key.sh /asaodevbox/
 WORKDIR /asaodevbox
-USER root
-RUN bash -c "./prepare-key.sh"
-USER jenkins
+RUN bash -c "sudo ./prepare-key.sh"
 
 FROM alpine:latest
 
