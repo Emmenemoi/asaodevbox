@@ -3,3 +3,5 @@ anydesk.conf
 extra-user-data
 livecd
 seed.iso
+partfs
+tmp*

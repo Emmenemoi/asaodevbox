@@ -30,7 +30,7 @@ find . -path ./isolinux -prune -o -type f -not -name md5sum.txt -print0 | xargs 
 cd ../..
 
 echo "Prepare AsaoDevBox.img"
-dd if=/dev/zero of=AsaoDevBox.img bs=1M count=0 seek=2048 status=progress
+dd if=/dev/zero of=/asaodevbox/AsaoDevBox.img bs=1M count=0 seek=2048 status=progress
 echo "Format AsaoDevBox.img"
 parted -s AsaoDevBox.img mklabel gpt
 parted -s -a optimal AsaoDevBox.img unit mib mkpart ESP fat32 1 1g name 1 AsaoDevBox set 1 esp on
