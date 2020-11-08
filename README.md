@@ -1,6 +1,10 @@
 # asaodevbox
 Automatic kubernetes developement server provisioning from OSX or Linux
 
+# Prerequisite
+
+You need functional docker installation, fuse module loaded on linux. For Mac OS X, you should use [osxfuse](https://osxfuse.github.io/).
+
 # General principle
 - The developer prepares an Installer Device
 - The developer inserts the Installer Device on the AsaoDevBox
@@ -44,17 +48,22 @@ Default cloud-init file that will merge the data with "extra-user-data" file pre
 
 # testing:
 
-Run prepare-key.sh with docker to generate your install disk image which will named AsaoDevBox.img:
+Run docker command to generate your install disk image which will named AsaoDevBox.img:
 
 ```bash
-docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -ti ubuntu:20.04 ./prepare-key.sh
+docker build -t asaodevbox .
+docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -ti asaodevbox
 ```
 
-You can also add a block disk in parameter to write it directly (all data on the block disk will be erased):
+You can also add an environment varible in parameter to specify where the image disk should be write:
 
 ```bash
-docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -ti ubuntu:20.04 ./prepare-key.sh /dev/sdl
+docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -e OUTPUT_DIR=/tmp -ti asaodevbox
 ```
+
+The image disk is named AsaoDevBox.img and can be write on a micrSD or USB drive with tools like [etcher](https://www.balena.io/etcher/).
+
+Plug your install device and start your AsaoDevBox.
 
 After some minutes, you can extract you install device and get your kube-config file, the install device is not mounted in normal run.
 
