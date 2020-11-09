@@ -3,11 +3,20 @@
 echo "Output directory : ${OUTPUT_DIR:="/asaodevbox"}"
 
 mkdir -p livecd/iso tmp{,2}
-if [ ! -f livecd/ubuntu-20.04.1-live-server-amd64.iso ]; then
-  echo "No install iso present. Download"
-  wget https://releases.ubuntu.com/20.04/ubuntu-20.04.1-live-server-amd64.iso -O livecd/ubuntu-20.04.1-live-server-amd64.iso
+
+UBUNTU_ISO=ubuntu-20.04.1-live-server-amd64.iso
+UBUNTU_ISO_PATH=/tmp/$UBUNTU_ISO
+if [ ! -f $UBUNTU_ISO_PATH ]; then
+	echo "No install iso present in tmp"
+	UBUNTU_ISO_PATH=livecd/$UBUNTU_ISO
 fi
-archivemount livecd/ubuntu-20.04.1-live-server-amd64.iso livecd/iso
+if [ ! -f $UBUNTU_ISO_PATH ]; then
+    UBUNTU_ISO_PATH=livecd/$UBUNTU_ISO
+	echo "No install iso present. Download to $UBUNTU_ISO_PATH"
+    wget -q https://releases.ubuntu.com/20.04/$UBUNTU_ISO -O $UBUNTU_ISO_PATH
+fi
+
+archivemount $UBUNTU_ISO_PATH livecd/iso
 
 echo "Prepare AsaoDevBox.img"
 dd if=/dev/zero of="${OUTPUT_DIR}"/AsaoDevBox.img bs=1M count=0 seek=2048 status=progress
