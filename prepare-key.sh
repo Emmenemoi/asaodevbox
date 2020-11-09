@@ -2,6 +2,8 @@
 
 echo "Output directory : ${OUTPUT_DIR:="/asaodevbox"}"
 
+local COPY_RSA="${COPY_RSA:-false}"
+
 mkdir -p livecd/iso tmp2
 
 UBUNTU_ISO=ubuntu-20.04.1-live-server-amd64.iso
@@ -52,12 +54,14 @@ umount tmp2
 echo "Copy userdata to AsaoDevBox.img"
 mkfs.vfat -F 32 -n asao-user-data /dev/disk/by-partlabel/asao-user-data
 mount /dev/disk/by-partlabel/asao-user-data tmp2
-if [ "x${SUDO_USER}" == "x" ]; then
-  if [ -f ~/.ssh/id_rsa.pub ]; then
-    cp ~/.ssh/id_rsa.pub tmp2/
-  fi
-else
-  cp /home/${SUDO_USER}/.ssh/id_rsa.pub tmp2/
+if [ $COPY_RSA ]; then
+	if [ "x${SUDO_USER}" == "x" ]; then
+	  if [ -f ~/.ssh/id_rsa.pub ]; then
+		cp ~/.ssh/id_rsa.pub tmp2/
+	  fi
+	else
+	  cp /home/${SUDO_USER}/.ssh/id_rsa.pub tmp2/
+	fi
 fi
 umount tmp2/
 losetup -d $(losetup -j "${OUTPUT_DIR}"/AsaoDevBox.img | cut -d: -f1)
