@@ -2,7 +2,7 @@
 
 echo "Output directory : ${OUTPUT_DIR:="/asaodevbox"}"
 
-local COPY_RSA="${COPY_RSA:-false}"
+COPY_RSA="${COPY_RSA:-false}"
 
 mkdir -p livecd/iso tmp2
 
