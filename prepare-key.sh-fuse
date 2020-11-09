@@ -2,21 +2,12 @@
 
 echo "Output directory : ${OUTPUT_DIR:="/asaodevbox"}"
 
-mkdir -p livecd/iso tmp2
-
-UBUNTU_ISO=ubuntu-20.04.1-live-server-amd64.iso
-UBUNTU_ISO_PATH=/tmp/$UBUNTU_ISO
-if [ ! -f $UBUNTU_ISO_PATH ]; then
-	echo "No install iso present in tmp"
-	UBUNTU_ISO_PATH=livecd/$UBUNTU_ISO
+mkdir -p livecd/iso tmp{,2}
+if [ ! -f livecd/ubuntu-20.04.1-live-server-amd64.iso ]; then
+  echo "No install iso present. Download"
+  wget https://releases.ubuntu.com/20.04/ubuntu-20.04.1-live-server-amd64.iso -O livecd/ubuntu-20.04.1-live-server-amd64.iso
 fi
-if [ ! -f $UBUNTU_ISO_PATH ]; then
-    UBUNTU_ISO_PATH=livecd/$UBUNTU_ISO
-	echo "No install iso present. Download to $UBUNTU_ISO_PATH"
-    wget -q https://releases.ubuntu.com/20.04/$UBUNTU_ISO -O $UBUNTU_ISO_PATH
-fi
-
-mount $UBUNTU_ISO_PATH livecd/iso -o loop,ro
+archivemount livecd/ubuntu-20.04.1-live-server-amd64.iso livecd/iso
 
 echo "Prepare AsaoDevBox.img"
 dd if=/dev/zero of="${OUTPUT_DIR}"/AsaoDevBox.img bs=1M count=0 seek=2048 status=progress
@@ -26,11 +17,10 @@ parted -s -a optimal "${OUTPUT_DIR}"/AsaoDevBox.img unit mib mkpart ESP fat32 1 
 #because cloud-init look for TYPE=vfat or iso9660 or LABEL=CIDATA or LABEL=cidata
 parted -s -a optimal "${OUTPUT_DIR}"/AsaoDevBox.img unit mib mkpart primary fat32 1g 1100 name 2 cidata
 parted -s -a optimal "${OUTPUT_DIR}"/AsaoDevBox.img unit mib mkpart primary fat32 1100 100% name 3 asao-user-data
-losetup -f -P "${OUTPUT_DIR}"/AsaoDevBox.img
-until [ -e /dev/disk/by-partlabel/AsaoDevBox ]; do sleep 1; done
+partfs -o dev="${OUTPUT_DIR}"/AsaoDevBox.img tmp
 
-mkfs.vfat -F 32 -n AsaoDevBox /dev/disk/by-partlabel/AsaoDevBox
-mount /dev/disk/by-partlabel/AsaoDevBox tmp2
+mkfs.vfat tmp/p1
+mount tmp/p1 tmp2
 echo "Copy ubuntu iso to AsaoDevBox.img"
 cp -r livecd/iso/. tmp2/
 sed \
@@ -41,8 +31,8 @@ find . -path ./isolinux -prune -o -type f -not -name md5sum.txt -print0 | xargs 
 cd ..
 umount tmp2
 echo "Copy cidata to AsaoDevBox.img"
-mkfs.vfat -F 32 -n cidata /dev/disk/by-partlabel/cidata
-mount /dev/disk/by-partlabel/cidata tmp2
+mkfs.vfat -F 32 -n cidata tmp/p2
+mount tmp/p2 tmp2
 for i in user-data meta-data extra-user-data; do
   if [ -e "$i" ]; then
     cp "$i" tmp2/
@@ -50,16 +40,14 @@ for i in user-data meta-data extra-user-data; do
 done
 umount tmp2
 echo "Copy userdata to AsaoDevBox.img"
-mkfs.vfat -F 32 -n asao-user-data /dev/disk/by-partlabel/asao-user-data
-mount /dev/disk/by-partlabel/asao-user-data tmp2
+mkfs.vfat -F 32 -n asao-user-data tmp/p3
+mount tmp/p3 tmp2
 if [ "x${SUDO_USER}" == "x" ]; then
-  if [ -f ~/.ssh/id_rsa.pub ]; then
-    cp ~/.ssh/id_rsa.pub tmp2/
-  fi
+  cp ~/.ssh/id_rsa.pub tmp2/
 else
   cp /home/${SUDO_USER}/.ssh/id_rsa.pub tmp2/
 fi
 umount tmp2/
-losetup -d $(losetup -j "${OUTPUT_DIR}"/AsaoDevBox.img | cut -d: -f1)
+fusermount -u tmp
 
 echo "Done!"
