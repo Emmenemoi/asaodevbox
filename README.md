@@ -41,7 +41,6 @@ Default cloud-init file that will merge the data with "extra-user-data" file pre
 - post-install.sh (optional): post install script for kube deployement on first boot
 - anydesk.conf (optional): contains Anydesk license and password (sample in anydesk.conf.sample)
 - reset (optional): file forcing auto provisionning if present
-- reset_k8s (optional): file forcing microk8s to return to the default initial state if present
 - keyfile (generate by installer): keyfile used to decrypt root partition
 - kube-config.cfg (generate on every boot): user config file for use with kubectl
 
@@ -73,8 +72,6 @@ To connect on the box, simply run :
 ```bash
 ssh asao@asaodevbox
 ```
-
-To reset your microk8s, simply put a file named reset_k8s in asao-user-data partition and reboot.
 
 To reinstall your box, simply put a file named reset in asao-user-data partition and reboot.
 

@@ -155,6 +155,7 @@ autoinstall:
         - if [ -f /asao-user-data/id_rsa ]; then cp /asao-user-data/id_rsa /target/home/asao/.ssh/id_rsa; chmod 600 /target/home/asao/.ssh/id_rsa; fi
         - cp /asao-user-data/id_rsa.pub /target/home/asao/.ssh/id_rsa.pub
         - cat /asao-user-data/id_rsa.pub >> /target/home/asao/.ssh/authorized_keys
+        - cp /tmp/reset_k8s.sh /target/home/asao/reset_k8s.sh; chmod 755 /target/home/asao/reset_k8s.sh
         - if [ -f /asao-user-data/post-install.sh ]; then cp /asao-user-data/post-install.sh /target/home/asao/post-install.sh; fi
         - chown -R 1000:1000 /target/home/asao
         - tr -dc _A-Za-z0-9 < /dev/urandom | head -c 128 > /asao-user-data/keyfile
@@ -181,7 +182,7 @@ write_files:
     FLAG="/var/log/asaobox_init.log"
 
     [ ! -d /asao-user-data ] && mkdir /asao-user-data
-    sudo mount /asao-user-data/
+    mount /asao-user-data/
 
     if [ -f /asao-user-data/reset ]; then
       dd if=/dev/zero of=/dev/disk/by-dname/main_disk bs=1M count=100
@@ -230,17 +231,11 @@ write_files:
           echo "Do nothing, or remove $FLAG file"
           beep -r 1 -l 100
       fi
-      if [ -f /asao-user-data/reset_k8s ]; then
-        microk8s.reset --destroy-storage
-        rm -f /asao-user-data/reset_k8s
-        microk8s.status --wait-ready
-        echo | microk8s.enable dashboard dns registry istio
-      fi
 
       microk8s.status --wait-ready
       microk8s.config > /asao-user-data/kube-config.cfg
     fi
-    sudo umount /asao-user-data/
+    umount /asao-user-data/
 - path: /tmp/etc/systemd/system/asaobox_init.service
   permission: '0644'
   content: |
@@ -255,3 +250,14 @@ write_files:
 
     [Install]
     WantedBy=multi-user.target
+- path: /tmp/reset_k8s.sh
+  permission: '0755'
+  content: |
+    #!/usr/bin/env bash
+    mount /asao-user-data/
+    microk8s.reset --destroy-storage
+    rm -f /asao-user-data/reset_k8s
+    microk8s.status --wait-ready
+    echo | microk8s.enable dashboard dns registry istio
+    microk8s.config > /asao-user-data/kube-config.cfg
+    umount /asao-user-data/
