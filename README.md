@@ -8,6 +8,7 @@ You need functional docker installation, fuse module loaded on linux. For Mac OS
 # General principle
 - The developer prepares an Installer Device
 - The developer inserts the Installer Device on the AsaoDevBox
+- The developer plug an ethernet cable on the AsaoDevBox
 - Auto provisioning the AsaoDevBox if no bootable device, with crypted root partition, with 0 interaction, including microk8s install (optional: specific channel indicated in extra-user-data)
 - An external install script is run for deployment of the developement environment to kube on first boot
 - Generated developement configuration is saved on the User Partition (kubectl config, logs, etc)
@@ -32,21 +33,19 @@ If the AsaoDevBox needs to "travels" safely, just unplug the "Installer Device" 
 
 Default cloud-init file that will merge the data with "extra-user-data" file preset on the Installer Device part 3 if any -> possible to assign fixed IP or default wifi SSID/PWD
 
-# extra-user-data
-
-- network: put your static network configuration (sample in extra-user-data.sample) (Don't work for now, you should put it in user-data file)
-
 # User partition files:
 
-- extra-user-data (optional): user-data cloud-init to be merged with 
+- extra-user-data (optional): user-data cloud-init to be merged with (Don't work for now, you should put it in user-data file)
 - rsa_id (optional): developer RSA private key used to access the distant private git repos.
 - rsa_id.pub: developer RSA public key. Will also be used to access the AsaoDevBox
-- keyfile (optional): keyfile used to encrypt root partition
 - post-install.sh (optional): post install script for kube deployement on first boot
 - anydesk.conf (optional): contains Anydesk license and password (sample in anydesk.conf.sample)
 - reset (optional): file forcing auto provisionning if present
+- reset_k8s (optional): file forcing microk8s to return to the default initial state if present
+- keyfile (generate by installer): keyfile used to decrypt root partition
+- kube-config.cfg (generate on every boot): user config file for use with kubectl
 
-# testing:
+# How to use it:
 
 Run docker command to generate your install disk image which will named AsaoDevBox.img:
 
@@ -63,7 +62,7 @@ docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh -
 
 The image disk is named AsaoDevBox.img and can be write on a microSD or USB drive with tools like [etcher](https://www.balena.io/etcher/).
 
-Plug your install device and start your AsaoDevBox.
+Plug your install device and ethernet network cable, then start your AsaoDevBox. The ethernet cable is only necessary during installation and can be remove after the second boot.
 
 After some minutes, you can extract you install device and get your kube-config file, the install device is not mounted in normal run.
 
@@ -75,9 +74,11 @@ To connect on the box, simply run :
 ssh asao@asaodevbox
 ```
 
+To reset your microk8s, simply put a file named reset_k8s in asao-user-data partition and reboot.
+
 To reinstall your box, simply put a file named reset in asao-user-data partition and reboot.
 
-If your system can't boot, plug a keyboard and press the required key at boot time for boot menu and select your boot device ([F8] on Zotac).
+If your system can't boot (install not finish or keyfile deleted in user partition of the install media), plug a keyboard and press the required key at boot time for boot menu and select your boot device ([F8] on Zotac).
 
 # Write to SD
 
