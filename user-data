@@ -215,6 +215,7 @@ write_files:
           microk8s.status --wait-ready
           echo | microk8s.enable dashboard dns registry istio
           #microk8s.config > /asao-user-data/kube-config.cfg
+          usermod -a -G microk8s asao
 
           # Run post-install script if exist
           if [ -f /home/asao/post-install.sh ]; then
