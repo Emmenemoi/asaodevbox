@@ -61,7 +61,7 @@ You can also add an environment varible in parameter to specify where the image 
 docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -e OUTPUT_DIR=/tmp -ti asaodevbox
 ```
 
-The image disk is named AsaoDevBox.img and can be write on a micrSD or USB drive with tools like [etcher](https://www.balena.io/etcher/).
+The image disk is named AsaoDevBox.img and can be write on a microSD or USB drive with tools like [etcher](https://www.balena.io/etcher/).
 
 Plug your install device and start your AsaoDevBox.
 
@@ -78,3 +78,14 @@ ssh asao@asaodevbox
 To reinstall your box, simply put a file named reset in asao-user-data partition and reboot.
 
 If your system can't boot, plug a keyboard and press the required key at boot time for boot menu and select your boot device ([F8] on Zotac).
+
+# Write to SD
+
+
+```bash
+diskutil unmount /dev/disk<nb>s1
+sudo dd if=AsaoDevBox.img of=/dev/rdisk<nb> bs=1m
+# or
+gzip -dc AsaoDevBox.img.gz | sudo dd of=/dev/rdisk<nb> bs=1m
+
+```

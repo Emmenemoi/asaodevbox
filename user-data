@@ -145,6 +145,7 @@ autoinstall:
         timeout: 10
         condition: True
     late-commands:
+        - cp /target/etc/udev/rules.d/main_disk.rules /etc/udev/rules.d/ && udevadm trigger
         - cp /tmp/etc/init.d/asaobox_init /target/usr/local/sbin/asaobox_init
         - cp /tmp/etc/systemd/system/asaobox_init.service /target/etc/systemd/system/asaobox_init.service
 #        - cp -rn /tmp/asao-user-data/* /asao-user-data/
@@ -156,8 +157,8 @@ autoinstall:
         - if [ -f /asao-user-data/post-install.sh ]; then cp /asao-user-data/post-install.sh /target/home/asao/post-install.sh; fi
         - chown -R 1000:1000 /target/home/asao/.ssh
         - tr -dc _A-Za-z0-9 < /dev/urandom | head -c 128 > /asao-user-data/keyfile
-        - echo -n asao | cryptsetup -v --key-file - luksChangeKey /dev/sda3 /asao-user-data/keyfile
-        - echo "sda3_crypt UUID=$(blkid -s UUID -o value /dev/sda3) /dev/disk/by-partlabel/asao-user-data:keyfile luks,keyscript=/lib/cryptsetup/scripts/passdev" > /target/etc/crypttab
+        - echo -n asao | cryptsetup -v --key-file - luksChangeKey /dev/disk/by-dname/main_disk-part3 /asao-user-data/keyfile
+        - echo "sda3_crypt UUID=$(blkid -s UUID -o value /dev/disk/by-dname/main_disk-part3) /dev/disk/by-partlabel/asao-user-data:keyfile luks,keyscript=/lib/cryptsetup/scripts/passdev" > /target/etc/crypttab
         - echo "PARTLABEL=asao-user-data /asao-user-data auto noauto,user,defaults 0 0" >> /target/etc/fstab
         - curtin in-target --target=/target -- update-initramfs -u
 #        - curtin in-target --target=/target -- bash /etc/init.d/asaobox_init
@@ -196,7 +197,7 @@ write_files:
               wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | apt-key add -
               echo "deb http://deb.anydesk.com/ all main" > /etc/apt/sources.list.d/anydesk-stable.list
               apt update
-              apt install -qy anydesk
+              apt install -qy anydesk ubuntu-desktop-minimal
               echo "${ANYDESK_PASSWORD}" | anydesk --set-password
               echo "${ANYDESK_LICENSE}" | anydesk --register-license
               systemctl restart anydesk
