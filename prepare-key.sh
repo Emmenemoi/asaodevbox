@@ -29,6 +29,7 @@ parted -s -a optimal "${OUTPUT_DIR}"/AsaoDevBox.img unit mib mkpart ESP fat32 1 
 parted -s -a optimal "${OUTPUT_DIR}"/AsaoDevBox.img unit mib mkpart primary fat32 1g 1100 name 2 cidata
 parted -s -a optimal "${OUTPUT_DIR}"/AsaoDevBox.img unit mib mkpart primary fat32 1100 100% name 3 asao-user-data
 losetup -f -P "${OUTPUT_DIR}"/AsaoDevBox.img
+sleep 2
 until [ -e /dev/disk/by-partlabel/AsaoDevBox ]; do sleep 1; done
 
 mkfs.vfat -F 32 -n AsaoDevBox /dev/disk/by-partlabel/AsaoDevBox
@@ -65,5 +66,6 @@ if [ $COPY_RSA ]; then
 fi
 umount tmp2/
 losetup -d $(losetup -j "${OUTPUT_DIR}"/AsaoDevBox.img | cut -d: -f1)
+umount livecd/iso
 
 echo "Done!"

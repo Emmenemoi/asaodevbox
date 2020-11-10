@@ -156,7 +156,7 @@ autoinstall:
         - cp /asao-user-data/id_rsa.pub /target/home/asao/.ssh/id_rsa.pub
         - cat /asao-user-data/id_rsa.pub >> /target/home/asao/.ssh/authorized_keys
         - if [ -f /asao-user-data/post-install.sh ]; then cp /asao-user-data/post-install.sh /target/home/asao/post-install.sh; fi
-        - chown -R 1000:1000 /target/home/asao/.ssh
+        - chown -R 1000:1000 /target/home/asao
         - tr -dc _A-Za-z0-9 < /dev/urandom | head -c 128 > /asao-user-data/keyfile
         - echo -n asao | cryptsetup -v --key-file - luksChangeKey /dev/disk/by-dname/main_disk-part3 /asao-user-data/keyfile
         - echo "sda3_crypt UUID=$(blkid -s UUID -o value /dev/disk/by-dname/main_disk-part3) /dev/disk/by-partlabel/asao-user-data:keyfile luks,keyscript=/lib/cryptsetup/scripts/passdev" > /target/etc/crypttab
@@ -214,7 +214,8 @@ write_files:
           snap install microk8s --classic --channel=1.14/stable
           microk8s.status --wait-ready
           echo | microk8s.enable dashboard dns registry istio
-          microk8s.config > /asao-user-data/kube-config.cfg
+          #microk8s.config > /asao-user-data/kube-config.cfg
+          usermod -a -G microk8s asao
 
           # Run post-install script if exist
           if [ -f /home/asao/post-install.sh ]; then
@@ -229,6 +230,15 @@ write_files:
           echo "Do nothing, or remove $FLAG file"
           beep -r 1 -l 100
       fi
+      if [ -f /asao-user-data/reset_k8s ]; then
+        microk8s.reset --destroy-storage
+        rm -f /asao-user-data/reset_k8s
+        microk8s.status --wait-ready
+        echo | microk8s.enable dashboard dns registry istio
+      fi
+
+      microk8s.status --wait-ready
+      microk8s.config > /asao-user-data/kube-config.cfg
     fi
     sudo umount /asao-user-data/
 - path: /tmp/etc/systemd/system/asaobox_init.service
