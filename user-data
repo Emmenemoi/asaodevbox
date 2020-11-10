@@ -165,7 +165,7 @@ autoinstall:
 #        - curtin in-target --target=/target -- bash /etc/init.d/asaobox_init
         - curtin in-target --target=/target -- ln -s /etc/systemd/system/asaobox_init.service /etc/systemd/system/multi-user.target.wants/asaobox_init.service
         - echo 'asao ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/asao
-        - sed -ie 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="splash pci=noaer"/' /target/etc/default/grub
+        - sed -ie 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="pci=noaer"/' /target/etc/default/grub
         - curtin in-target --target /target update-grub
 write_files:
 #- path: /tmp/asao-user-data/ssh_config
