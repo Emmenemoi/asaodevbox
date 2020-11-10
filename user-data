@@ -135,6 +135,7 @@ autoinstall:
     packages:
 #        - ubuntu-desktop-minimal
         - git
+        - beep
         - wpasupplicant
     user-data:
         disable_root: false
@@ -163,6 +164,9 @@ autoinstall:
         - curtin in-target --target=/target -- update-initramfs -u
 #        - curtin in-target --target=/target -- bash /etc/init.d/asaobox_init
         - curtin in-target --target=/target -- ln -s /etc/systemd/system/asaobox_init.service /etc/systemd/system/multi-user.target.wants/asaobox_init.service
+        - echo 'asao ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/asao
+        - sed -ie 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="splash pci=noaer"/' /target/etc/default/grub
+        - curtin in-target --target /target update-grub
 write_files:
 #- path: /tmp/asao-user-data/ssh_config
 #  permissions: '0400'
@@ -180,14 +184,15 @@ write_files:
     sudo mount /asao-user-data/
 
     if [ -f /asao-user-data/reset ]; then
-      dd if=/dev/zero of=/dev/sda bs=1M count=100
+      dd if=/dev/zero of=/dev/disk/by-dname/main_disk bs=1M count=100
       rm -f /asao-user-data/reset
+      beep -l 1000 -r 3
       reboot
     else
       if [ ! -f $FLAG ]; then
           #Put here your initialization sentences
           echo "This is the first boot"
-          
+          beep -l 1000
           # if AnydeskPassword is set, run:
           if [ -f /asao-user-data/anydesk.conf ]; then
             source /asao-user-data/anydesk.conf
@@ -218,8 +223,11 @@ write_files:
           fi
 
           touch $FLAG
+          beep -r 5 -l 100
+          reboot
       else
           echo "Do nothing, or remove $FLAG file"
+          beep -r 1 -l 100
       fi
     fi
     sudo umount /asao-user-data/
