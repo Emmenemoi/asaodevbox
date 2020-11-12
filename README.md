@@ -80,6 +80,11 @@ To reinstall your box, simply put a file named reset in asao-user-data partition
 
 If your system can't boot (install not finish or keyfile deleted in user partition of the install media), plug a keyboard and press the required key at boot time for boot menu and select your boot device ([F8] on Zotac).
 
+Access kube cluster:
+```bash
+ssh asao@asaodevbox "sudo microk8s.config | sed 's/microk8s/asaodevbox/g' | sed 's/ name: admin/ name: admin-asaodevbox/g'"
+```
+
 # Write to SD
 
 

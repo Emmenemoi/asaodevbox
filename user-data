@@ -179,6 +179,7 @@ write_files:
   content: |
     #!/bin/bash
     FLAG="/var/log/asaobox_init.log"
+    MICROK8S_ADDONS="dashboard dns registry rbac metrics-server storage"
 
     [ ! -d /asao-user-data ] && mkdir /asao-user-data
     sudo mount /asao-user-data/
@@ -202,7 +203,8 @@ write_files:
               wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | apt-key add -
               echo "deb http://deb.anydesk.com/ all main" > /etc/apt/sources.list.d/anydesk-stable.list
               apt update
-              apt install -qy anydesk ubuntu-desktop-minimal
+              apt install -qy ubuntu-desktop-minimal
+              apt install -qy anydesk
               echo "${ANYDESK_PASSWORD}" | anydesk --set-password
               echo "${ANYDESK_LICENSE}" | anydesk --register-license
               systemctl restart anydesk
@@ -213,7 +215,7 @@ write_files:
           # Install and configure microk8s
           snap install microk8s --classic --channel=1.14/stable
           microk8s.status --wait-ready
-          echo | microk8s.enable dashboard dns registry istio
+          echo | microk8s.enable $MICROK8S_ADDONS
           #microk8s.config > /asao-user-data/kube-config.cfg
           usermod -a -G microk8s asao
 
@@ -234,11 +236,13 @@ write_files:
         microk8s.reset --destroy-storage
         rm -f /asao-user-data/reset_k8s
         microk8s.status --wait-ready
-        echo | microk8s.enable dashboard dns registry istio
+        echo | microk8s.enable $MICROK8S_ADDONS
       fi
 
       microk8s.status --wait-ready
       microk8s.config > /asao-user-data/kube-config.cfg
+      
+      echo "alias kubectl=microk8s.kubectl" > /etc/profile.d/microk8s
     fi
     sudo umount /asao-user-data/
 - path: /tmp/etc/systemd/system/asaobox_init.service
