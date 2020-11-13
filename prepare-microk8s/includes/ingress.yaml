@@ -1,0 +1,198 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: traefik-web-ui
+    namespace: kube-system
+spec:
+  selector:
+      k8s-app: traefik-ingress-lb
+  ports:
+  - name: web
+    port: 80
+    targetPort: 8888
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-registry
+  namespace: container-registry
+spec:
+  selector:
+      app: registry
+  ports:
+  - name: registry
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik-web-ui
+  namespace: kube-system
+  annotations:
+    traefik.ingress.kubernetes.io/rule-type: "PathPrefixStrip"
+    traefik.ingress.kubernetes.io/rewrite-target: "/dashboard/"
+spec:
+  rules:
+  - host: asaodevbox.local
+    http:
+      paths:
+      - path: /traefik
+        backend:
+          serviceName: traefik-web-ui
+          servicePort: web
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: traefik-registry
+  namespace: container-registry
+spec:
+  rules:
+  - host: registry.asaodevbox.local
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: traefik-registry
+          servicePort: 5000
+---
+apiVersion: v1  
+kind: ConfigMap  
+metadata:  
+  name: traefik-conf
+  namespace: kube-system
+data:  
+  traefik.toml: |-
+    defaultEntryPoints = ["http","https"]
+
+    [entryPoints]
+      [entryPoints.http]
+      address = ":80"
+      [entryPoints.https]
+      address = ":443"
+        [entryPoints.https.tls]
+        [[entryPoints.https.tls.certificates]]
+        CertFile = "/certs/asaodevbox_cert.pem"
+        KeyFile = "/certs/asaodevbox_key.pem"
+
+      [entryPoints.traefik] # The entrypoint which fix the problem, but I don't know what is its purpose
+      address = ":8888"
+
+    #   [entryPoints.registry]
+    #   address = ":32443"
+    #     [entryPoints.registry.tls]
+    #       [[entryPoints.registry.tls.certificates]]
+    #       CertFile = "/certs/cert.pem"
+    #       KeyFile = "/certs/key.pem"
+
+    # [backends]
+    #   [backends.registry]
+    #     [backends.registry.servers.registry]
+    #     url = "http://127.0.0.1:32000"
+      
+    # [frontends]
+    #   [frontends.registry]
+    #   entrypoints = ["registry"] # overrides defaultEntryPoints
+    #   backend = "registry"
+
+    # [entryPoints.dockers]
+    # address = ":2376"
+    #   [entryPoints.dockers.tls]
+    #     [[entryPoints.dockers.tls.certificates]]
+    #     CertFile = "/certs/cert.pem"
+    #     KeyFile = "/certs/key.pem"
+    # [backends]
+    #   [backends.docker]
+    #   url = "http://localhost:2375"
+    # [frontends]
+    #   [frontends.dockers]
+    #   entrypoints = ["dockers"] # overrides defaultEntryPoints
+    #   backend = "docker"
+    #   [frontends.ip]
+    #   entrypoints = ["http", "https"] # overrides defaultEntryPoints
+    #   backend = "docker"
+    #     [frontends.ip.routes.ip]
+    #     rule = "Host:127.0.0.1
+    [api]
+      dashboard = true
+      entryPoint = "traefik"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: traefik-ingress-controller
+    namespace: kube-system
+---
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+    name: traefik-ingress-controller
+    namespace: kube-system
+    labels:
+        k8s-app: traefik-ingress-lb
+        kubernetes.io/cluster-service: "true"
+spec:
+    selector:
+        matchLabels:
+            k8s-app: traefik-ingress-lb
+            name: traefik-ingress-lb
+    template:
+        metadata:
+            labels:
+                k8s-app: traefik-ingress-lb
+                name: traefik-ingress-lb
+        spec:
+            hostNetwork: true
+            serviceAccountName: traefik-ingress-controller
+            terminationGracePeriodSeconds: 60
+            volumes:
+              - name: config
+                configMap:
+                  name: traefik-conf
+              - name: ssl-folder
+                hostPath: 
+                  path: /etc/ssl/certs
+                  type: Directory
+            # initContainers:
+            #   - name: ssl-init
+            #     image: petekaik/openssl-certgen:latest
+            #     command: ["sh", "-c",'openssl req -nodes -x509 -newkey rsa:4096 -keyout /tmp/ssl/key.pem -out /tmp/ssl/cert.pem -days 365 -subj "/C=FR/ST=IDF/L=Paris/O=ASAO/OU=DevOps/CN=asaodevbox.local" -addext "subjectAltName = IP:127.0.0.1, DNS:localhost, DNS:asaodevbox.local, DNS:asaodevbox, DNS:registry.asaodevbox.local"']
+            #     volumeMounts:
+            #     - name: ssl-folder
+            #       mountPath: /tmp/ssl
+            containers:
+            - image: traefik:v1.7
+              name: traefik-ingress-lb
+              ports:
+              - name: https
+                containerPort: 443
+                hostPort: 443
+              - name: http
+                containerPort: 80
+                hostPort: 80
+              - name: admin
+                containerPort: 8888
+                hostPort: 8888
+              # - name: dockers
+              #   containerPort: 2376
+              #   hostPort: 2376
+              args:
+              - --kubernetes
+              - --logLevel=INFO
+              - --configfile=/config/traefik.toml
+              volumeMounts:
+                - mountPath: "/config"
+                  name: "config"
+                - name: ssl-folder
+                  mountPath: /certs
+            # - name: proxy
+            #   image: tecnativa/docker-socket-proxy
+            #   ports:
+            #   - name: docker
+            #     containerPort: 2375
+            #     protocol: TCP
+            #   volumeMounts:
+            #   - name: docker-sock
+            #     mountPath: /var/run/docker.sock

@@ -1,0 +1,31 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: dashboard
+    namespace: kube-system
+    annotations:
+        ingress.kubernetes.io/secure-backends: "true"
+        ingress.kubernetes.io/ssl-passthrough: "true"
+spec:
+    rules:
+    - host: asaodevbox.local
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: kubernetes-dashboard
+            servicePort: 80
+
+      # containers:
+      #   - name: kubernetes-dashboard
+      #     image: kubernetesui/dashboard:v2.0.4
+      #     ports:
+      #       - containerPort: 9090
+      #         protocol: TCP
+      #     args:
+      #       - --namespace=kubernetes-dashboard
+      #       - --enable-insecure-login
+      #       - --enable-skip-login
+      #       - --disable-settings-authorizer
+      #       - --insecure-bind-address=0.0.0.0

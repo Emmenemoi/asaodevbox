@@ -148,7 +148,9 @@ autoinstall:
     late-commands:
         - cp /target/etc/udev/rules.d/main_disk.rules /etc/udev/rules.d/ && udevadm trigger
         - cp /tmp/etc/init.d/asaobox_init /target/usr/local/sbin/asaobox_init
+        - cp /tmp/etc/default/microk8s /target/etc/default/microk8s
         - cp /tmp/etc/systemd/system/asaobox_init.service /target/etc/systemd/system/asaobox_init.service
+        - cat /tmp/hosts >> /target/etc/hosts
 #        - cp -rn /tmp/asao-user-data/* /asao-user-data/
         - mkdir -p /target/home/asao/.ssh/
         - chmod 0700 /target/home/asao/.ssh
@@ -156,6 +158,7 @@ autoinstall:
         - cp /asao-user-data/id_rsa.pub /target/home/asao/.ssh/id_rsa.pub
         - cat /asao-user-data/id_rsa.pub >> /target/home/asao/.ssh/authorized_keys
         - cp /tmp/reset_k8s.sh /target/home/asao/reset_k8s.sh; chmod 755 /target/home/asao/reset_k8s.sh
+        - if [ -f /prepare-microk8s ]; then cp /prepare-microk8s /target/home/asao/prepare-microk8s; fi
         - if [ -f /asao-user-data/post-install.sh ]; then cp /asao-user-data/post-install.sh /target/home/asao/post-install.sh; fi
         - chown -R 1000:1000 /target/home/asao
         - tr -dc _A-Za-z0-9 < /dev/urandom | head -c 128 > /asao-user-data/keyfile
@@ -175,12 +178,23 @@ write_files:
 #  content: |
 #      Host bitbucket.org
 #            IdentityFile    ~/.ssh/id_rsa
+- path: /tmp/etc/default/microk8s
+  permissions: '0555'
+  content: |
+    MICROK8S_ADDONS="dashboard dns registry rbac metrics-server storage"
+- path: /tmp/hosts
+    permissions: '0555'
+    content: |
+      127.0.0.1 asaodevbox
+      127.0.0.1 asaodevbox.local
+      127.0.0.1 registry.asaodevbox
+      127.0.0.1 registry.asaodevbox.local
 - path: /tmp/etc/init.d/asaobox_init
   permissions: '0755'
   content: |
     #!/bin/bash
-    FLAG="/var/log/asaobox_init.log"
-    export MICROK8S_ADDONS="dashboard dns registry rbac metrics-server storage"
+    FLAG="/var/log/asaobox_init.lock"
+    source /etc/default/microk8s
 
     [ ! -d /asao-user-data ] && mkdir /asao-user-data
     mount /asao-user-data/
@@ -195,6 +209,7 @@ write_files:
           #Put here your initialization sentences
           echo "This is the first boot"
           beep -l 1000
+
           # if AnydeskPassword is set, run:
           if [ -f /asao-user-data/anydesk.conf ]; then
             source /asao-user-data/anydesk.conf
@@ -216,15 +231,27 @@ write_files:
           # Install and configure microk8s
           snap install microk8s --classic --channel=1.14/stable
           microk8s.status --wait-ready
-          # RBAC bp if hostname not fully lowercase
+          # RBAC pb if hostname not fully lowercase
           # echo "--hostname-override" >> /var/snap/microk8s/current/args/kubelet
           echo | microk8s.enable $MICROK8S_ADDONS
           #microk8s.config > /asao-user-data/kube-config.cfg
+          mkdir -p /home/asao/.kube
+          chown -R asao:asao /home/asao/.kube
+          microk8s.config > /home/asao/.kube/config
+          chown -R asao:asao /home/asao/.kube
           usermod -a -G microk8s asao
+
+          # Run prepare script if exist
+          if [ -f /home/asao/prepare-microk8s ]; then
+            chmod a+rx /home/asao/prepare-microk8s/devbox-prepare.sh
+            cd /home/asao/prepare-microk8s
+            ./devbox-prepare.sh
+          fi 
 
           # Run post-install script if exist
           if [ -f /home/asao/post-install.sh ]; then
             chmod a+rx /home/asao/post-install.sh
+            cd /home/asao
             /home/asao/post-install.sh
           fi    
           touch $FLAG
@@ -259,6 +286,7 @@ write_files:
   permission: '0755'
   content: |
     #!/usr/bin/env bash
+    source /etc/default/microk8s
     mount /asao-user-data/
     microk8s.reset --destroy-storage
     rm -f /asao-user-data/reset_k8s

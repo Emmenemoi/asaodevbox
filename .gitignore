@@ -5,3 +5,4 @@ livecd
 seed.iso
 partfs
 tmp*
+.DS*

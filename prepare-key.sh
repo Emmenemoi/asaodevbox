@@ -2,7 +2,7 @@
 
 echo "Output directory : ${OUTPUT_DIR:="/asaodevbox"}"
 
-COPY_RSA="${COPY_RSA:-}"
+COPY_RSA=${COPY_RSA:-}
 
 mkdir -p livecd/iso tmp2
 
@@ -42,6 +42,7 @@ sed \
 cd tmp2
 find . -path ./isolinux -prune -o -type f -not -name md5sum.txt -print0 | xargs -0 md5sum | tee md5sum.txt
 cd ..
+cp -r prepare-microk8s tmp2/
 umount tmp2
 echo "Copy cidata to AsaoDevBox.img"
 mkfs.vfat -F 32 -n cidata /dev/disk/by-partlabel/cidata
@@ -66,6 +67,7 @@ else
 	  cp /home/${SUDO_USER}/.ssh/id_rsa.pub tmp2/
 	fi
 fi
+cp anydesk.conf.sample tmp2/
 umount tmp2/
 losetup -d $(losetup -j "${OUTPUT_DIR}"/AsaoDevBox.img | cut -d: -f1)
 umount livecd/iso
