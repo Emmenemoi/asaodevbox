@@ -58,6 +58,7 @@ mkfs.vfat -F 32 -n asao-user-data /dev/disk/by-partlabel/asao-user-data
 mount /dev/disk/by-partlabel/asao-user-data tmp2
 if [ -z "$COPY_RSA" ]; then
 	echo "Don't copy rsa key to asao-user-data"
+	touch tmp2/id_rsa.pub.sample
 else
 	if [ "x${SUDO_USER}" == "x" ]; then
 	  if [ -f ~/.ssh/id_rsa.pub ]; then

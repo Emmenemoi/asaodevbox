@@ -86,6 +86,8 @@ ssh asao@asaodevbox "sudo microk8s.config | sed 's/microk8s/asaodevbox/g' | sed 
 
 
 ```bash
+diskutil unmountDisk /dev/rdisk<nb>
+or
 diskutil unmount /dev/disk<nb>s1
 sudo dd if=AsaoDevBox.img of=/dev/rdisk<nb> bs=1m
 # or

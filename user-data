@@ -183,12 +183,12 @@ write_files:
   content: |
     MICROK8S_ADDONS="dashboard dns registry rbac metrics-server storage"
 - path: /tmp/hosts
-    permissions: '0555'
-    content: |
-      127.0.0.1 asaodevbox
-      127.0.0.1 asaodevbox.local
-      127.0.0.1 registry.asaodevbox
-      127.0.0.1 registry.asaodevbox.local
+  permissions: '0555'
+  content: |
+    127.0.0.1 asaodevbox
+    127.0.0.1 asaodevbox.local
+    127.0.0.1 registry.asaodevbox
+    127.0.0.1 registry.asaodevbox.local
 - path: /tmp/etc/init.d/asaobox_init
   permissions: '0755'
   content: |
