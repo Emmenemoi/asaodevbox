@@ -2,7 +2,7 @@
 
 echo "Output directory : ${OUTPUT_DIR:="/asaodevbox"}"
 
-COPY_RSA="${COPY_RSA:-false}"
+COPY_RSA="${COPY_RSA:-}"
 
 mkdir -p livecd/iso tmp2
 
@@ -55,7 +55,9 @@ umount tmp2
 echo "Copy userdata to AsaoDevBox.img"
 mkfs.vfat -F 32 -n asao-user-data /dev/disk/by-partlabel/asao-user-data
 mount /dev/disk/by-partlabel/asao-user-data tmp2
-if [ $COPY_RSA ]; then
+if [ -z "$COPY_RSA" ]; then
+	echo "Don't copy rsa key to asao-user-data"
+else
 	if [ "x${SUDO_USER}" == "x" ]; then
 	  if [ -f ~/.ssh/id_rsa.pub ]; then
 		cp ~/.ssh/id_rsa.pub tmp2/
