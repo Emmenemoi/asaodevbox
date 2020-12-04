@@ -79,7 +79,7 @@ If your system can't boot (install not finish or keyfile deleted in user partiti
 
 Access kube cluster:
 ```bash
-ssh asao@asaodevbox "sudo microk8s.config | sed 's/microk8s/asaodevbox/g' | sed 's/ name: admin/ name: admin-asaodevbox/g'"
+ssh asao@asaodevbox "sudo microk8s.config | sed 's/microk8s/asaodevbox/g' | sed 's/ name: admin/ name: admin-asaodevbox/g' && printf '\n'"
 ```
 
 # Write to SD

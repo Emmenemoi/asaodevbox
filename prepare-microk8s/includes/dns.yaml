@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-dns-host
+  namespace: kube-system
+data:
+  asaodevbox: |
+    address=/registry.asaodevbox.local/127.0.0.1 

@@ -15,3 +15,10 @@ microk8s.kubectl patch deployment kubernetes-dashboard  --namespace kube-system 
 microk8s.kubectl patch deployment kubernetes-dashboard  --namespace kube-system --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/livenessProbe/httpGet/scheme", "value": HTTP}]'
 
 microk8s.kubectl patch service kubernetes-dashboard  --namespace kube-system --type='json' -p='[{"op": "replace", "path": "/spec/ports", "value":[{"port":80,"protocol":"TCP","targetPort":9090}]}]'
+
+microk8s.kubectl patch deployment registry --namespace container-registry --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/hostname", "value":"registry"}]'
+#microk8s.kubectl patch deployment registry --namespace container-registry --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/subdomain", "value":"asaodevbox"}]'
+
+IP=$(ip route show default | awk '/default/{print $9}')
+microk8s.kubectl patch deployment kube-dns --namespace kube-system --type='json' -p="[{'op': 'replace', 'path': '/spec/template/spec/containers/1/args/12', 'value':'--address=/registry.asaodevbox.local/${IP}'}]"
+
