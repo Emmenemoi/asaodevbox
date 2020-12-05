@@ -148,6 +148,7 @@ autoinstall:
         condition: True
     late-commands:
         - cp /target/etc/udev/rules.d/main_disk.rules /etc/udev/rules.d/ && udevadm trigger
+        - cp /tmp/etc/gdm3/custom.conf /target/etc/gdm3/custom.conf
         - cp /tmp/etc/init.d/asaobox_init /target/usr/local/sbin/asaobox_init
         - cp /tmp/etc/default/microk8s /target/etc/default/microk8s
         - cp /tmp/etc/samba/smb.conf /target/etc/samba/smb.conf
@@ -181,6 +182,38 @@ write_files:
 #  content: |
 #      Host bitbucket.org
 #            IdentityFile    ~/.ssh/id_rsa
+- path: /tmp/etc/gdm3/custom.conf
+  permissions: '0600'
+  content: |
+    # GDM configuration storage
+    #
+    # See /usr/share/gdm/gdm.schemas for a list of available options.
+
+    [daemon]
+    # Uncomment the line below to force the login screen to use Xorg
+    #WaylandEnable=false
+
+    # Enabling automatic login
+    #  AutomaticLoginEnable = true
+    #  AutomaticLogin = user1
+      AutomaticLoginEnable = true
+      AutomaticLogin = asao
+    # Enabling timed login
+    #  TimedLoginEnable = true
+    #  TimedLogin = user1
+    #  TimedLoginDelay = 10
+
+    [security]
+
+    [xdmcp]
+
+    [chooser]
+
+    [debug]
+    # Uncomment the line below to turn on debugging
+    # More verbose logs
+    # Additionally lets the X server dump core if it crashes
+    #Enable=true
 - path: /tmp/etc/default/microk8s
   permissions: '0555'
   content: |
