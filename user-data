@@ -183,16 +183,14 @@ write_files:
 #      Host bitbucket.org
 #            IdentityFile    ~/.ssh/id_rsa
 - path: /tmp/etc/gdm3/custom.conf
-  permissions: '0600'
+  permissions: '0500'
   content: |
     # GDM configuration storage
     #
     # See /usr/share/gdm/gdm.schemas for a list of available options.
-
     [daemon]
     # Uncomment the line below to force the login screen to use Xorg
     #WaylandEnable=false
-
     # Enabling automatic login
     #  AutomaticLoginEnable = true
     #  AutomaticLogin = user1
@@ -202,13 +200,9 @@ write_files:
     #  TimedLoginEnable = true
     #  TimedLogin = user1
     #  TimedLoginDelay = 10
-
     [security]
-
     [xdmcp]
-
     [chooser]
-
     [debug]
     # Uncomment the line below to turn on debugging
     # More verbose logs
