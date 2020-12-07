@@ -148,7 +148,7 @@ autoinstall:
         condition: True
     late-commands:
         - cp /target/etc/udev/rules.d/main_disk.rules /etc/udev/rules.d/ && udevadm trigger
-        - cp /tmp/etc/gdm3/custom.conf /target/etc/gdm3/custom.conf
+        - mkdir -p /target/etc/gdm3 && cp /tmp/etc/gdm3/custom.conf /target/etc/gdm3/custom.conf
         - cp /tmp/etc/init.d/asaobox_init /target/usr/local/sbin/asaobox_init
         - cp /tmp/etc/default/microk8s /target/etc/default/microk8s
         - cp /tmp/etc/samba/smb.conf /target/etc/samba/smb.conf
@@ -162,7 +162,7 @@ autoinstall:
         - cp /asao-user-data/id_rsa.pub /target/home/asao/.ssh/id_rsa.pub
         - cat /asao-user-data/id_rsa.pub >> /target/home/asao/.ssh/authorized_keys
         - cp /tmp/reset_k8s.sh /target/home/asao/reset_k8s.sh; chmod 755 /target/home/asao/reset_k8s.sh
-        - if [ -d /prepare-microk8s ]; then mkdir -p /target/home/asao/prepare-microk8s && cp -rn /prepare-microk8s/* /target/home/asao/prepare-microk8s/; fi
+        - if [ -d /source/prepare-microk8s ]; then mkdir -p /target/home/asao/prepare-microk8s && cp -rn /source/prepare-microk8s/* /target/home/asao/prepare-microk8s/; fi
         - if [ -f /asao-user-data/post-install.sh ]; then cp /asao-user-data/post-install.sh /target/home/asao/post-install.sh; fi
         - chown -R 1000:1000 /target/home/asao
         - tr -dc _A-Za-z0-9 < /dev/urandom | head -c 128 > /asao-user-data/keyfile
@@ -253,7 +253,7 @@ write_files:
               wget -qO - https://keys.anydesk.com/repos/DEB-GPG-KEY | apt-key add -
               echo "deb http://deb.anydesk.com/ all main" > /etc/apt/sources.list.d/anydesk-stable.list
               apt update
-              apt install -qy ubuntu-desktop-minimal
+              apt install -qy -o Dpkg::Options::=--force-confdef ubuntu-desktop-minimal
               apt install -qy anydesk
               echo "${ANYDESK_PASSWORD}" | anydesk --set-password
               echo "${ANYDESK_LICENSE}" | anydesk --register-license
@@ -275,13 +275,18 @@ write_files:
           chown -R asao:asao /home/asao/.kube
           usermod -a -G microk8s asao
 
+
           # Run prepare script if exist
-          if [ -d /home/asao/prepare-microk8s ]; then
-            echo "PREPARE MICROK8S"
-            chmod a+rx /home/asao/prepare-microk8s/devbox-prepare.sh
-            cd /home/asao/prepare-microk8s
-            ./devbox-prepare.sh
-          fi 
+          if [ ! -d /home/asao/prepare-microk8s ]; then
+            echo "IMPORT MICROK8S SCRIPTS"
+            mount /dev/disk/by-label/AsaoDevBox /mnt
+            mkdir -p /home/asao/prepare-microk8s
+            cp -rn /mnt/prepare-microk8s/* /home/asao/prepare-microk8s/
+          fi
+          echo "PREPARE MICROK8S"
+          chmod a+rx /home/asao/prepare-microk8s/devbox-prepare.sh
+          cd /home/asao/prepare-microk8s
+          ./devbox-prepare.sh
 
           # Run post-install script if exist
           if [ -f /home/asao/post-install.sh ]; then
