@@ -183,7 +183,7 @@ write_files:
 #      Host bitbucket.org
 #            IdentityFile    ~/.ssh/id_rsa
 - path: /tmp/etc/gdm3/custom.conf
-  permissions: '0500'
+  permissions: '0640'
   content: |
     # GDM configuration storage
     #
@@ -209,7 +209,7 @@ write_files:
     # Additionally lets the X server dump core if it crashes
     #Enable=true
 - path: /tmp/etc/default/microk8s
-  permissions: '0555'
+  permissions: '0644'
   content: |
     MICROK8S_ADDONS="dashboard dns registry metrics-server storage rbac"
 - path: /tmp/70-pcspkr-beep.rules
