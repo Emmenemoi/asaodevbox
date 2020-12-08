@@ -56,6 +56,10 @@ autoinstall:
               name: main_disk
               preserve: false
               wipe: superblock
+              # if fail on partitioning: use serial from /dev/disk/by-id/<serial>
+              # serial: <serial>
+              # or path
+              # path: /dev/<path>
             - id: sda1
               type: partition
               size: 512M
