@@ -267,7 +267,7 @@ write_files:
           fi
 
           # Install and configure microk8s
-          snap install microk8s --classic --channel=1.14/stable
+          snap install microk8s --classic --channel=1.15/stable
           microk8s.status --wait-ready
           # RBAC pb if hostname not fully lowercase
           # echo "--hostname-override" >> /var/snap/microk8s/current/args/kubelet
