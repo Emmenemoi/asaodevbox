@@ -20,6 +20,6 @@ microk8s.kubectl patch deployment registry --namespace container-registry --type
 #microk8s.kubectl patch deployment registry --namespace container-registry --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/subdomain", "value":"asaodevbox"}]'
 
 IP=$(ip route show default | awk '/default/{print $9}')
-microk8s.kubectl patch deployment core-dns --namespace kube-system --type='json' -p="[{'op': 'add', 'path': '/spec/template/spec/containers/1/args/12', 'value':'--address=/registry.asaodevbox.local/${IP}'}]"
+microk8s.kubectl patch deployment coredns --namespace kube-system --type='json' -p="[{'op': 'add', 'path': '/spec/template/spec/containers/1/args/12', 'value':'--address=/registry.asaodevbox.local/${IP}'}]"
 
 microk8s stop && microk8s start
