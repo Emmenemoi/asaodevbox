@@ -50,13 +50,13 @@ Run docker command to generate your install disk image which will named AsaoDevB
 
 ```bash
 docker build -t asaodevbox .
-docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -ti asaodevbox
+docker run --rm -v /dev:/dev -v ${PWD}:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -ti asaodevbox
 ```
 
 You can also add an environment varible in parameter to specify where the image disk should be write:
 
 ```bash
-docker run --rm -v /dev:/dev -v `pwd`:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -e OUTPUT_DIR=/tmp -ti asaodevbox
+docker run --rm -v /dev:/dev -v ${PWD}:/asaodevbox -v "${HOME}"/.ssh:/root/.ssh --privileged --workdir /asaodevbox -e OUTPUT_DIR=/tmp -ti asaodevbox
 ```
 
 The image disk is named AsaoDevBox.img and can be write on a microSD or USB drive with tools like [etcher](https://www.balena.io/etcher/).
