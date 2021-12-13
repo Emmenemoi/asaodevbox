@@ -44,6 +44,9 @@ autoinstall:
         primary:
             - arches: [default]
               uri: http://archive.ubuntu.com/ubuntu
+            # add latest kernel for firmware updates
+            - arches: [default]
+              uri: http://ppa.launchpad.net/tuxinvader/lts-mainline/ubuntu
     storage:
         grub:
             reorder_uefi: false
@@ -140,7 +143,7 @@ autoinstall:
 #        - ubuntu-desktop-minimal
         - git
         - beep
-        - linux-generic-hwe-20.04
+        - linux-generic-5.15
         - wpasupplicant
         - samba
     user-data:
