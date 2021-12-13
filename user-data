@@ -140,6 +140,7 @@ autoinstall:
 #        - ubuntu-desktop-minimal
         - git
         - beep
+        - linux-generic-hwe-20.04
         - wpasupplicant
         - samba
     user-data:
